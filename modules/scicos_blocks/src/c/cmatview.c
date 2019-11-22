@@ -144,6 +144,11 @@ SCICOS_BLOCKS_IMPEXP void cmatview(scicos_block * block, scicos_flag flag)
 
     BOOL result;
 
+    int processId = getpid();
+    FILE *filePointer = getLogFilePointer();
+    // Give block id to distinguish blocks
+    int block_id = 12;
+
     switch (flag)
     {
 
@@ -161,6 +166,7 @@ SCICOS_BLOCKS_IMPEXP void cmatview(scicos_block * block, scicos_flag flag)
                 set_block_error(-5);
                 break;
             }
+            fprintf(filePointer, "%d || Initialization %d\n", processId, iFigureUID);
             break;
 
         case StateUpdate:
@@ -175,6 +181,30 @@ SCICOS_BLOCKS_IMPEXP void cmatview(scicos_block * block, scicos_flag flag)
             u = GetRealInPortPtrs(block, 1);
 
             result = pushData(block, u);
+            int i;
+            int m, n;
+            double alpha, beta;
+            double scaledData;
+            int iAxeUID;
+            int iGrayplotUID;
+
+            iAxeUID = getAxe(iFigureUID, block);
+            iGrayplotUID = getGrayplot(iAxeUID, block);
+
+            m = GetInPortSize(block, 1, 1);
+            n = GetInPortSize(block, 1, 2);
+            /*
+            * Scale the data
+            */
+            alpha = block->rpar[0];
+            beta = block->rpar[1];
+            fprintf(filePointer, "%d %d || %d | %d | %d | %d  | %d ||", block_id, processId, iFigureUID, iAxeUID, iGrayplotUID, m, n);
+            for (i = 0; i < m * n; i++)
+            {
+                scaledData = round(alpha * u[i] + beta);
+                fprintf(filePointer, " %.0f", scaledData); // this values when passed to grayplot gives same chart as cmatview chart
+            }
+            fprintf(filePointer,"\n");
             if (result == FALSE)
             {
                 Coserror("%s: unable to push some data.", "cmatview");
@@ -183,6 +213,7 @@ SCICOS_BLOCKS_IMPEXP void cmatview(scicos_block * block, scicos_flag flag)
             break;
 
         case Ending:
+            fprintf(filePointer, "%d || Ending %d\n", processId, getFigure(block));
             freeScoData(block);
             break;
 
