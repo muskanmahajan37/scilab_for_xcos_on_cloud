@@ -46,7 +46,6 @@ SCICOS_BLOCKS_IMPEXP void affich2(scicos_block * block, int flag)
     char ***pstValue = NULL;
     char pstConv[128];
 
-    int processId = getpid();
     FILE *filePointer = getLogFilePointer();
     int block_id = 20;
     double time = 0;
@@ -65,10 +64,8 @@ SCICOS_BLOCKS_IMPEXP void affich2(scicos_block * block, int flag)
             pstValue = (char ***)block->work[0];
 
             time = get_scicos_time();
-            fprintf(filePointer, "%d %d || %s | 0 | %s || %f %d %d",
-                    block_id, processId,
-                    block->uid, block->uid,
-                    time, iRowsIn, iColsIn);
+            fprintf(filePointer, "%d || %s || %d %d",
+                    block_id, block->uid, iRowsIn, iColsIn);
 
             for (i = 0; i < iRowsIn; i++)
             {
@@ -103,7 +100,7 @@ SCICOS_BLOCKS_IMPEXP void affich2(scicos_block * block, int flag)
 
         case Initialization:       //init
             pstValue = (char ***)MALLOC(sizeof(char **) * iRowsIn);
-            fprintf(filePointer, "%d || Initialization %s\n", processId, block->uid);
+            fprintf(filePointer, "Initialization %s\n", block->uid);
 
             for (i = 0; i < iRowsIn; i++)
             {
@@ -138,7 +135,7 @@ SCICOS_BLOCKS_IMPEXP void affich2(scicos_block * block, int flag)
         case Ending:
             // Getting the allocated area
             pstValue = (char ***)block->work[0];
-            fprintf(filePointer, "%d || Ending %s\n", processId, block->uid);
+            fprintf(filePointer, "Ending %s\n", block->uid);
 
             for (i = 0; i < iRowsIn; i++)
             {
